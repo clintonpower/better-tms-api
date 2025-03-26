@@ -1,0 +1,11 @@
+# Python
+bin/
+lib/
+include/
+
+# Excel
+*.csv
+*.xlsx
+
+# Config files
+*.cfg
