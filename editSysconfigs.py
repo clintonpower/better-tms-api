@@ -5,7 +5,9 @@ from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 # --- Helpers ---
+
 def load_config(sheet):
+    """Load key-value config data from the 'config' sheet."""
     config = {}
     for row in sheet.iter_rows(min_row=1, values_only=True):
         if row[0] and row[1]:
@@ -13,9 +15,11 @@ def load_config(sheet):
     return config
 
 def encode_sid(enterprise_oid):
+    """Encode the sidEnterprise format used in TMS URLs."""
     return quote_plus(f"({enterprise_oid},3640,0)")
 
 def group_settings_by_page(sheet):
+    """Group setting changes by page name for batch POST requests."""
     grouped = defaultdict(dict)
     header = [cell.value for cell in sheet[1]]
     page_idx = header.index("page")
@@ -23,8 +27,9 @@ def group_settings_by_page(sheet):
     value_idx = header.index("value")
 
     for row in sheet.iter_rows(min_row=2, values_only=True):
+        # Stop if any required field is missing (first empty row)
         if not row[page_idx] or not row[setting_idx] or not row[value_idx]:
-            break  # Stop on first empty row
+            break
         page = str(row[page_idx]).strip()
         setting = str(row[setting_idx]).strip()
         value = str(row[value_idx]).strip()
@@ -32,6 +37,7 @@ def group_settings_by_page(sheet):
     return grouped
 
 def ensure_status_column(sheet):
+    """Add a Status column to the sheet if missing and return its index."""
     header = [cell.value for cell in sheet[1]]
     if "Status" in header:
         return header.index("Status") + 1
@@ -40,6 +46,7 @@ def ensure_status_column(sheet):
     return col
 
 def prime_session(session, primary_server):
+    """Make a priming GET request to warm up the session."""
     url = f"https://{primary_server}.mercurygate.net/MercuryGate/enterprise/editEnterpriseSysConMisc.jsp"
     try:
         resp = session.get(url, timeout=10)
@@ -48,10 +55,11 @@ def prime_session(session, primary_server):
         print("Error during priming GET:", e)
 
 def post_settings(page, settings, sidEnterprise, config, primary_server):
+    """Send a single POST request for one settings page with all its settings."""
     url = f"https://{primary_server}.mercurygate.net/MercuryGate/enterprise/{page}"
     referer_url = f"https://{primary_server}.mercurygate.net/MercuryGate/enterprise/{page.replace('_process', '')}"
 
-    # Build form body as a raw string (like in fetch())
+    # Build raw form body
     form_items = [f"sidEnterprise={sidEnterprise}"] + [f"{k}={v}" for k, v in settings.items()]
     body_str = "&".join(form_items)
 
@@ -86,6 +94,7 @@ def post_settings(page, settings, sidEnterprise, config, primary_server):
 
 # --- Main Processing ---
 def process_sysconfigs(excel_path, max_workers=10):
+    """Main entry point for processing sysconfig updates from Excel file."""
     wb = openpyxl.load_workbook(excel_path)
     config = load_config(wb["config"])
     lookup_sheet = wb["lookup"]
@@ -98,14 +107,15 @@ def process_sysconfigs(excel_path, max_workers=10):
     primary_server = config["PRIMARY_SERVER"]
     sidEnterprise = quote_plus(f"({config['ENTERPRISE']},3640,0)")
 
+    # Create a session for priming
     session = requests.Session()
     session.headers.update({
         "User-Agent": "Mozilla/5.0",
         "Cookie": config["AUTH_COOKIE"]
     })
-
     prime_session(session, primary_server)
 
+    # Group settings per page and prepare for batch POSTing
     grouped = group_settings_by_page(lookup_sheet)
     status_col = ensure_status_column(lookup_sheet)
 
@@ -119,6 +129,7 @@ def process_sysconfigs(excel_path, max_workers=10):
             page = futures[future]
             results[page] = future.result()
 
+    # Record status back into Excel
     for row in range(2, lookup_sheet.max_row + 1):
         page_cell = lookup_sheet.cell(row=row, column=1).value
         if not page_cell:
@@ -127,6 +138,7 @@ def process_sysconfigs(excel_path, max_workers=10):
         status = results.get(page, "Not attempted")
         lookup_sheet.cell(row=row, column=status_col, value=status)
 
+    # Save results
     output_path = excel_path.replace(".xlsx", "_updated.xlsx")
     wb.save(output_path)
     print(f"Finished. Results written to {output_path}")
