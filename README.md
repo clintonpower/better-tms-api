@@ -131,6 +131,7 @@ For additional support or to report bugs, please open an issue on GitHub.
 
 ## To Do
 
+- [ ] add proper user authentication & storage instead of cookie-based
 - [ ] add multi-threading to all scripts
 - [ ] add script for Load creation
 - [ ] add script for mass deletion (EL/SO/Shipments)
