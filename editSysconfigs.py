@@ -1,8 +1,8 @@
-import openpyxl
-import requests
-from urllib.parse import quote_plus
-from collections import defaultdict
-from concurrent.futures import ThreadPoolExecutor, as_completed
+import openpyxl                                                     # type: ignore
+import requests                                                     # type: ignore
+from urllib.parse import quote_plus                                 # type: ignore
+from collections import defaultdict                                 # type: ignore
+from concurrent.futures import ThreadPoolExecutor, as_completed     # type: ignore
 
 # --- Helpers ---
 
