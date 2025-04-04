@@ -26,6 +26,8 @@ This repository contains scripts designed to streamline mass-updates and actions
 | addPricesheet.py     | Creates and adds new pricesheet to load (EL/SO) | Source Excel file                                                      | ![Static Badge](https://img.shields.io/badge/multi--threaded-darkgreen) |
 | editPricesheet.py    | Updates existing pricesheet (EL/SO)             | Source Excel file                                                      | ![Static Badge](https://img.shields.io/badge/multi--threaded-darkgreen) |
 | editStatusMessage.py | Updates or adds status messages (EL/SO)         | Source Excel file, secondary Excel file with transport_order_id lookup | ![Static Badge](https://img.shields.io/badge/single--threaded-orange)   |
+| editSysconfigs.py    | Updates system configurations                   | Source Excel file                                                      | ![Static Badge](https://img.shields.io/badge/multi--threaded-darkgreen) |
+| runAdminCommand.py   | Executes and verifies admin commands            | Source Excel file                                                      | ![Static Badge](https://img.shields.io/badge/single--threaded-orange)   |
 
 ## Excel & CSV File Structure
 
@@ -82,13 +84,13 @@ This file is used to provide additional mapping for transport IDs, enhancing the
 
    ```bash
    git clone https://github.com/yourusername/better-tms-api.git
-   cd better-tms-api```
+   cd better-tms-api
 
    ```
 2. **Create a Virtual Environment:**
 
    ```python
-   source venv/bin/activate  # On Windows use `venv\Scripts\activate` instead ```
+   source venv/bin/activate  # On Windows use `venv\Scripts\activate` instead
 
    ```
 3. **Install Dependencies:**
@@ -120,10 +122,10 @@ Ensure that your code follows the project style guidelines and that you have upd
 
 ## Troubleshooting
 
-- **Excel Configuration Issues:**Ensure that the `config` and `lookup` sheets exist and are properly formatted. Missing required keys in the `config` sheet will raise errors.
-- **Mapping CSV Issues:**Verify that your CSV file uses the correct headers (`transport_id`, `transport_order_id`). Incorrect formatting may lead to mapping errors.
-- **HTTP Request Errors:**
-  If you encounter errors related to HTTP requests (e.g., priming the session or POST requests), double-check the `PRIMARY_SERVER` and `AUTH_COOKIE` values in your configuration.
+- **Excel Configuration Issues:** Ensure that the `config` and `lookup` sheets exist and are properly formatted. Missing required keys in the `config` sheet will raise errors.
+- **Mapping CSV Issues:** Verify that your CSV file uses the correct headers (`transport_id`, `transport_order_id`). Incorrect formatting may lead to mapping errors.
+- **HTTP Request Errors:** If you encounter errors related to HTTP requests (e.g., priming the session or POST requests), double-check the `PRIMARY_SERVER` and `AUTH_COOKIE` values in your configuration.
+- **HTTP Unauthorized Errors:** Make sure that your `AUTH_COOKIE` is not expired and that your copied it correctly.
 
 For additional support or to report bugs, please open an issue on GitHub.
 
@@ -132,6 +134,8 @@ For additional support or to report bugs, please open an issue on GitHub.
 - [ ] add multi-threading to all scripts
 - [ ] add script for Load creation
 - [ ] add script for mass deletion (EL/SO/Shipments)
-- [ ] add requirements.txt
+- [X] add script for system configurations
+- [X] add script for admin commands
+- [X] add requirements.txt
 - [ ] add more config variables
 - [ ] remove additional dependency for editStatusMessage.py
